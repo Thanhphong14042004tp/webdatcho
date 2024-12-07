@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Reservations</title>
+    <style>
+        /* Global Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: #f4f7fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #fff;
+            width: 100%;
+            max-width: 800px;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        /* Reservations List */
+        #reservationsList {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .reservation-item {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: left;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .reservation-item:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .reservation-item h3 {
+            font-size: 22px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .reservation-item p {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        /* Cancel Button */
+        button {
+            padding: 10px 20px;
+            background-color: #ff6347;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #e53e3e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>My Reservations</h2>
+        <div id="reservationsList"></div>
+    </div>
+
+    <script>
+        async function getReservations() {
+            const token = localStorage.getItem('token');
+            const response = await fetch('/reservations', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const reservations = await response.json();
+            const reservationsList = document.getElementById('reservationsList');
+
+            reservations.forEach(reservation => {
+                const reservationItem = document.createElement('div');
+                reservationItem.classList.add('reservation-item');
+                reservationItem.innerHTML = `
+                    <h3>Service: ${reservation.service_id.name}</h3>
+                    <p>Date: ${reservation.date}</p>
+                    <p>Time: ${reservation.time}</p>
+                    <p>Number of People: ${reservation.number_of_people}</p>
+                    <button onclick="cancelReservation('${reservation._id}')">Cancel Reservation</button>
+                `;
+                reservationsList.appendChild(reservationItem);
+            });
+        }
+
+        async function cancelReservation(reservationId) {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`/reservations/${reservationId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                alert('Reservation cancelled');
+                window.location.reload();
+            } else {
+                alert(data.message);
+            }
+        }
+
+        getReservations();
+    </script>
+</body>
+</html>
